@@ -7,10 +7,13 @@
 #include <random>
 #include <cstdlib>
 #include <algorithm>
+#include <chrono>
 #include "graph.cpp"
 #include "mincut.cpp"
 #include "tworespectingtrees.cpp"
 using namespace std;
+#define DEBUG 1
+#define LOG(...) if(DEBUG){printf(__VA_ARGS__);}
 
 // Read graph from stdin
 // Format:
@@ -32,6 +35,7 @@ pgraph graph_reader()
 		double c;
 		scanf("%d%d%lf", &u, &v, &c);
 		//u--, v--;
+		// Start End ID Weight, every edge has and ID in a graph
 		pedge tmp = new edge(u, v, i, c);
 		E.emplace_back(tmp);
 	}
@@ -73,14 +77,18 @@ void tester(pgraph G)
 {
 	double d;
 	scanf("%lf",&d);
+	auto time1 = std::chrono::system_clock::now();
 	vector<ptree> trees = tworespectingtrees(d, G);
-	printf("%d\n", int(trees.size()));
+	auto time2 = std::chrono::system_clock::now();
+	LOG("%d\n", int(trees.size()));
 
 	// Fix wts using edge index
 	for(auto it: trees)
 	{
+		// For every MST it
 		for(auto gt: it->E)
 		{
+			// For every edge gt in it
 			gt->w = G->E[gt->idx]->w;
 			//cout << gt->u << " " << gt->v << " " << gt->idx << " " << gt->w << "\n";
 		}
@@ -91,13 +99,14 @@ void tester(pgraph G)
 	//trees.push_back(tree_reader());
 
 	double res = double(1e9)+5;
+	auto time3 = std::chrono::system_clock::now();
 	for(auto it: trees)
 	{
 		mincut mc(G, it);
 		res = min(res, mc.compute());
 		mc.clear();
 	}
-
+	auto time4 = std::chrono::system_clock::now();
 	for(auto it: trees)
 	{
 		for(auto gt: it->E) delete(gt);
@@ -106,40 +115,44 @@ void tester(pgraph G)
 	for(auto it: G->E) delete(it);
 	delete(G);
 
-	printf("%lf\n", res);
+	LOG("Min cut is:%lf\n", res);
+	LOG("Time taken for tworespectingtrees:%lf\n", std::chrono::duration_cast<std::chrono::milliseconds>(time2-time1).count()/1000.0);
+	LOG("Time taken between tworespectingtrees and mincut:%lf\n", std::chrono::duration_cast<std::chrono::milliseconds>(time3-time2).count()/1000.0);
+	LOG("Time taken for mincut:%lf\n", std::chrono::duration_cast<std::chrono::milliseconds>(time4-time3).count()/1000.0);
 }
 
-void tester_lemma8ds()
-{
-	ptree T = tree_reader();
-	lemma8ds D(T);
+// void tester_lemma8ds()
+// {
+// 	ptree T = tree_reader();
+// 	lemma8ds D(T);
 
-	int m;
-	scanf("%d", &m);
+// 	int m;
+// 	scanf("%d", &m);
 
-	while(m--)
-	{
-		int t, u, v;
-		double x;
-		scanf("%d", &t);
-		if(t == 0) printf("%lf\n", D.QueryMinimum());
-		else if(t == 1)
-		{
-			scanf("%d%d%lf", &u, &v, &x);
-			D.PathAdd(u, v, x);
-		}
-		else if(t == 2)
-		{
-			scanf("%d%d%lf", &u, &v, &x);
-			D.NonPathAdd(u, v, x);
-		}
-	}
-}
+// 	while(m--)
+// 	{
+// 		int t, u, v;
+// 		double x;
+// 		scanf("%d", &t);
+// 		if(t == 0) {
+// 			LOG("%lf\n", D.QueryMinimum());
+// 		}
+// 		else if(t == 1)
+// 		{
+// 			scanf("%d%d%lf", &u, &v, &x);
+// 			D.PathAdd(u, v, x);
+// 		}
+// 		else if(t == 2)
+// 		{
+// 			scanf("%d%d%lf", &u, &v, &x);
+// 			D.NonPathAdd(u, v, x);
+// 		}
+// 	}
+// }
 
 int main(void)
 {
 	srand(time(NULL));
 	pgraph G = graph_reader();
 	tester(G);
-	//tester2();
 }

@@ -23,7 +23,7 @@ typedef edge* pedge;
 class graph {
 public:
 	int n, m;
-	vector<vector<pedge>> adj;
+	vector<vector<pedge>> adj; // from a vertex to all its edges
 	vector<pedge> E;
 	graph(int _n, int _m, vector<pedge>& _E)
 	{
